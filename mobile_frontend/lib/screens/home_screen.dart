@@ -1,18 +1,22 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/product_provider.dart';
-import '../providers/cart_provider.dart';
-import '../widgets/product_card.dart';
-import '../widgets/category_chip.dart';
-import '../widgets/category_grid_item.dart';
-import '../core/app_theme.dart';
-import '../core/snackbar_helper.dart';
-import 'product_list_screen.dart';
-import 'product_detail_screen.dart';
-import 'search_screen.dart';
-import 'cart_screen.dart';
-import 'profile_screen.dart';
 
+import '../core/app_theme.dart';
+import '../models/category.dart';
+import '../providers/product_provider.dart';
+import '../services/core_service.dart';
+import '../widgets/notice_marquee.dart';
+import '../widgets/product_card.dart';
+import '../widgets/promo_banner_carousel.dart';
+import 'product_detail_screen.dart';
+import 'product_list_screen.dart';
+import 'search_screen.dart';
+
+/// Home tab — Star-Tech-style layout:
+///   search bar → featured categories grid → auto promo banner →
+///   notice marquee → featured products.
+/// The bottom navigation itself lives in main_shell.dart.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -21,325 +25,297 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
-
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAll());
   }
 
-  Future<void> _loadData() async {
+  Future<void> _loadAll() async {
     final provider = Provider.of<ProductProvider>(context, listen: false);
-    // Run in parallel rather than sequentially — three independent
-    // endpoints, so there's no reason to wait for each in turn.
-    await Future.wait([
-      provider.fetchFeaturedProducts(),
-      provider.fetchCategories(),
-    ]);
-  }
-
-  void _openTab(int index, Widget screen) {
-    setState(() => _selectedIndex = index);
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen))
-        .then((_) {
-      if (mounted) setState(() => _selectedIndex = 0);
-    });
+    if (provider.categories.isEmpty) {
+      await provider.fetchCategories();
+    }
+    await provider.fetchFeaturedProducts();
   }
 
   @override
   Widget build(BuildContext context) {
-    final productProvider = context.watch<ProductProvider>();
-    final cartCount = context.watch<CartProvider>().itemCount;
-    final categories = productProvider.displayCategories;
+    final provider = context.watch<ProductProvider>();
 
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _loadData,
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              pinned: true,
-              backgroundColor: Colors.white,
-              surfaceTintColor: Colors.transparent,
-              elevation: 0,
-              toolbarHeight: 70,
-              titleSpacing: 16,
-              title: GestureDetector(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen())),
-                child: Container(
-                  height: 44,
-                  decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(12)),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 12),
-                      Icon(Icons.search, color: Colors.grey.shade500, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Search products, brands...',
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-                        ),
-                      ),
-                    ],
+      backgroundColor: AppTheme.background,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _loadAll,
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            children: [
+              const SizedBox(height: 14),
+              const _HomeSearchBar(),
+              const SizedBox(height: 18),
+              _FeaturedCategories(categories: provider.categories),
+              const SizedBox(height: 16),
+              const PromoBannerCarousel(),
+              const NoticeMarquee(),
+              const SizedBox(height: 20),
+              _SectionHeader(
+                title: 'Featured Products',
+                onSeeAll: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProductListScreen(),
                   ),
                 ),
               ),
-              actions: [
-                IconButton(
-                  icon: Badge(
-                    label: Text('$cartCount'),
-                    isLabelVisible: cartCount > 0,
-                    child: const Icon(Icons.shopping_cart_outlined),
-                  ),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
-                ),
-                const SizedBox(width: 4),
-              ],
-            ),
-
-            // ── Category chips ────────────────────────────────────
-            SliverToBoxAdapter(
-              child: Container(
-                color: Colors.white,
-                padding: const EdgeInsets.only(bottom: 16),
-                child: SizedBox(
-                  height: 36,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: categories.length > 10 ? 10 : categories.length,
-                    itemBuilder: (context, index) {
-                      final category = categories[index];
-                      // Reusing the existing CategoryChip widget, which
-                      // now supports onTap — home used to render its own
-                      // inline chip markup instead, duplicating this.
-                      return CategoryChip(
-                        category: category,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: category.slug)),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-
-            // ── Feature shortcuts ─────────────────────────────────
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _FeatureCard(
-                        icon: Icons.build_circle_outlined,
-                        title: 'PC Builder',
-                        color: AppTheme.primary,
-                        // Honest placeholder rather than a dead button:
-                        // PC build compatibility is in your proposal but
-                        // has no backend endpoint yet.
-                        onTap: () => AppSnackbar.showInfo(context, 'PC Builder is coming soon'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _FeatureCard(
-                        icon: Icons.laptop_mac_outlined,
-                        title: 'Laptop Finder',
-                        color: Colors.orange.shade700,
-                        onTap: () => AppSnackbar.showInfo(context, 'Laptop Finder is coming soon'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // ── Featured products ─────────────────────────────────
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Featured Products', style: Theme.of(context).textTheme.titleLarge),
-                        const SizedBox(height: 2),
-                        Text('Handpicked for you', style: Theme.of(context).textTheme.bodySmall),
-                      ],
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ProductListScreen()),
-                      ),
-                      child: const Text('See all'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 258,
-                child: productProvider.isLoadingFeatured
-                    ? const Center(child: CircularProgressIndicator())
-                    : productProvider.featuredProducts.isEmpty
-                    ? Center(
-                  child: Text('No featured products yet', style: Theme.of(context).textTheme.bodyMedium),
-                )
-                    : ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: productProvider.featuredProducts.length,
-                  itemBuilder: (context, index) {
-                    final product = productProvider.featuredProducts[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: SizedBox(
-                        width: 160,
-                        child: GestureDetector(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => ProductDetailScreen(slug: product.slug)),
-                          ),
-                          // Reusing the shared ProductCard rather
-                          // than the previous separate
-                          // _buildFeaturedCard() method, which
-                          // duplicated nearly the same
-                          // image/price/badge layout.
-                          child: ProductCard(product: product),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-
-            // ── Categories grid ───────────────────────────────────
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text('Shop by Category', style: Theme.of(context).textTheme.titleLarge),
-                    // Categories now come from GET /products/categories/.
-                    // If that request fails, the fallback list is still
-                    // drawn (so the screen is never empty) — but the real
-                    // problem is surfaced with a retry instead of being
-                    // hidden behind fake data.
-                    if (productProvider.categoriesError.isNotEmpty &&
-                        !productProvider.hasRemoteCategories)
-                      TextButton(
-                        onPressed: () => productProvider.fetchCategories(),
-                        child: productProvider.isLoadingCategories
-                            ? const SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                            : const Text('Retry'),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 0.88,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    final category = categories[index];
-                    return CategoryGridItem(
-                      category: category,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: category.slug)),
-                      ),
-                    );
-                  },
-                  childCount: categories.length > 8 ? 8 : categories.length,
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
-          ],
+              const SizedBox(height: 10),
+              _FeaturedProductsGrid(provider: provider),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          switch (index) {
-            case 1:
-              _openTab(1, const ProductListScreen());
-              break;
-            case 2:
-              _openTab(2, const CartScreen());
-              break;
-            case 3:
-              _openTab(3, const ProfileScreen());
-              break;
-            default:
-              setState(() => _selectedIndex = 0);
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.grid_view_outlined), activeIcon: Icon(Icons.grid_view), label: 'Products'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), activeIcon: Icon(Icons.shopping_cart), label: 'Cart'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
+    );
+  }
+}
+
+// =========================================================
+// Search bar (taps open the real SearchScreen)
+// =========================================================
+class _HomeSearchBar extends StatelessWidget {
+  const _HomeSearchBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(28),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(28),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SearchScreen()),
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: const Row(
+            children: [
+              Icon(Icons.search, color: AppTheme.textSecondary, size: 22),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Search products, brands, anything',
+                  style:
+                  TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// =========================================================
+// Featured categories grid (top section)
+// =========================================================
+class _FeaturedCategories extends StatelessWidget {
+  final List<Category> categories;
+  const _FeaturedCategories({required this.categories});
+
+  @override
+  Widget build(BuildContext context) {
+    if (categories.isEmpty) return const SizedBox.shrink();
+
+    // Categories flagged is_featured in the admin come first;
+    // if nobody flagged anything yet, just take the first 10.
+    final featured =
+    categories.where((c) => c.isFeatured && c.isActive).toList();
+    final shown =
+    (featured.isNotEmpty ? featured : categories.where((c) => c.isActive))
+        .take(10)
+        .toList();
+    if (shown.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Categories',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: shown.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 5,
+            mainAxisSpacing: 14,
+            crossAxisSpacing: 8,
+            childAspectRatio: 0.72,
+          ),
+          itemBuilder: (context, i) => _CategoryIconTile(category: shown[i]),
+        ),
+      ],
+    );
+  }
+}
+
+class _CategoryIconTile extends StatelessWidget {
+  final Category category;
+  const _CategoryIconTile({required this.category});
+
+  @override
+  Widget build(BuildContext context) {
+    final iconUrl = absMediaUrl(category.image ?? category.image_url);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ProductListScreen(initialCategory: category.slug),
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: iconUrl != null
+                ? CachedNetworkImage(
+              imageUrl: iconUrl,
+              fit: BoxFit.contain,
+              errorWidget: (_, __, ___) => const Icon(
+                Icons.category_outlined,
+                color: AppTheme.primary,
+              ),
+            )
+                : const Icon(Icons.category_outlined,
+                color: AppTheme.primary),
+          ),
+          const SizedBox(height: 6),
+          Expanded(
+            child: Text(
+              category.name,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 10.5, height: 1.15),
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _FeatureCard extends StatelessWidget {
-  final IconData icon;
+// =========================================================
+// Section header with "See all"
+// =========================================================
+class _SectionHeader extends StatelessWidget {
   final String title;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _FeatureCard({required this.icon, required this.title, required this.color, required this.onTap});
+  final VoidCallback? onSeeAll;
+  const _SectionHeader({required this.title, this.onSeeAll});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [color.withOpacity(0.10), color.withOpacity(0.04)],
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary,
           ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.2)),
         ),
-        child: Column(
-          children: [
-            Icon(icon, size: 30, color: color),
-            const SizedBox(height: 8),
-            Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
-          ],
+        if (onSeeAll != null)
+          InkWell(
+            onTap: onSeeAll,
+            child: const Row(
+              children: [
+                Text(
+                  'See all',
+                  style: TextStyle(color: AppTheme.primary, fontSize: 13),
+                ),
+                Icon(Icons.chevron_right, color: AppTheme.primary, size: 18),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// =========================================================
+// Featured products grid
+// =========================================================
+class _FeaturedProductsGrid extends StatelessWidget {
+  final ProductProvider provider;
+  const _FeaturedProductsGrid({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    if (provider.isLoadingFeatured && provider.featuredProducts.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final products = provider.featuredProducts.take(10).toList();
+    if (products.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+          child: Text(
+            'No featured products yet.\nTick "is featured" on some products in the admin panel.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+          ),
         ),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: products.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.62,
       ),
+      itemBuilder: (context, i) {
+        final product = products[i];
+        return GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ProductDetailScreen(slug: product.slug),
+            ),
+          ),
+          child: ProductCard(product: product),
+        );
+      },
     );
   }
 }

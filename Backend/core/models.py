@@ -49,3 +49,21 @@ class Notice(TimeStampedModel):
 
     def __str__(self):
         return self.title
+
+
+class Banner(TimeStampedModel):
+    """Promotional banners shown in the app's auto-sliding home carousel."""
+
+    title = models.CharField(max_length=120)
+    subtitle = models.CharField(max_length=200, blank=True, default='')
+    image = models.ImageField(upload_to='banners/', blank=True, null=True)
+    image_url = models.URLField(blank=True, null=True)
+    link = models.CharField(max_length=200, blank=True, default='')
+    sort_order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['sort_order', '-created_at']
+
+    def __str__(self):
+        return self.title

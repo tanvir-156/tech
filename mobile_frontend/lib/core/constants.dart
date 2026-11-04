@@ -11,8 +11,10 @@ class ApiConstants {
   //
   // Android emulator -> maps to your PC's own localhost.
   // static const String baseUrl = "http://192.168.0.155:8000/api/v1";
+  //
+  // static const String baseUrl = "http://10.0.2.2:8000/api/v1";
 
-  static const String baseUrl = "http://10.0.2.2:8000/api/v1";
+  static const String baseUrl = 'http://192.168.0.199:8000/api/v1';
 
 // Swap to one of these depending on how you're running the app:
 // Chrome / Windows desktop app -> "http://127.0.0.1:8000/api/v1"

@@ -7,7 +7,7 @@ import 'providers/product_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/address_provider.dart';
 import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_shell.dart';
 
 void main() {
   runApp(const TechNestApp());
@@ -34,7 +34,7 @@ class TechNestApp extends StatelessWidget {
         home: const AuthGate(),
         routes: {
           '/login': (context) => const LoginScreen(),
-          '/home': (context) => const HomeScreen(),
+          '/home': (context) => const MainShell(),
         },
       ),
     );
@@ -61,6 +61,6 @@ class AuthGate extends StatelessWidget {
         body: Center(child: CircularProgressIndicator()),
       );
     }
-    return auth.isAuthenticated ? const HomeScreen() : const LoginScreen();
+    return auth.isAuthenticated ? const MainShell() : const LoginScreen();
   }
 }

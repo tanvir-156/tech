@@ -286,7 +286,10 @@ class _SubCategoryCard extends StatelessWidget {
                     spacing: 10,
                     runSpacing: 12,
                     children: brands
-                        .map((b) => _BrandChip(brand: b))
+                        .map((b) => _BrandChip(
+                      brand: b,
+                      subCategory: subCategory,
+                    ))
                         .toList(),
                   ),
                 ],
@@ -301,7 +304,8 @@ class _SubCategoryCard extends StatelessWidget {
 
 class _BrandChip extends StatelessWidget {
   final Brand brand;
-  const _BrandChip({required this.brand});
+  final Category subCategory;
+  const _BrandChip({required this.brand, required this.subCategory});
 
   @override
   Widget build(BuildContext context) {
@@ -312,7 +316,10 @@ class _BrandChip extends StatelessWidget {
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ProductListScreen(initialBrand: brand.slug),
+          builder: (_) => ProductListScreen(
+            initialCategory: subCategory.slug,
+            initialBrand: brand.slug,
+          ),
         ),
       ),
       child: SizedBox(

@@ -1,13 +1,7 @@
 from rest_framework.routers import DefaultRouter
-from .views import NoticeViewSet, BannerViewSet
+from .views import NoticeViewSet
 
 router = DefaultRouter()
-
-router.register(
-    'banners',
-    BannerViewSet,
-    basename='banner'
-)
 
 router.register(
     'notices',

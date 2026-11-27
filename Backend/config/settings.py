@@ -288,3 +288,4 @@ SSLCOMMERZ_FRONTEND_URL = os.getenv(
 # =========================================================
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", SSLCOMMERZ_FRONTEND_URL).rstrip("/")
+

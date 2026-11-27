@@ -87,7 +87,7 @@ def send_password_reset_otp(user):
 
     send_mail(
 
-        subject='Tech Password Reset OTP',
+        subject='TechNestPassword Reset OTP',
 
         message=(
             f'Hello {user.first_name},\n\n'

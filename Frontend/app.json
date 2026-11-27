@@ -17,7 +17,9 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.technest.app",
       "infoPlist": {
-        "NSAppTransportSecurity": { "NSAllowsArbitraryLoads": true }
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
       }
     },
     "android": {
@@ -25,9 +27,14 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#14100D"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
-    "web": { "favicon": "./assets/favicon.png" },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
     "plugins": [
       "expo-secure-store",
       [
@@ -38,8 +45,22 @@
       ],
       [
         "expo-build-properties",
-        { "android": { "usesCleartextTraffic": true } }
-      ]
-    ]
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      "expo-font",
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser",
+      "@react-native-community/datetimepicker"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ffcf8d9f-76f3-4182-abda-890022434734"
+      }
+    }
   }
 }

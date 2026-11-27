@@ -3,7 +3,7 @@
 import hashlib
 import json
 from collections import defaultdict
-from datetime import timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.admin.models import ADDITION, CHANGE, DELETION, LogEntry
@@ -49,24 +49,38 @@ def login(request):
         email=request.data.get("email"),
         password=request.data.get("password"),
     )
+
     if not user or not user.is_active or not user.is_staff:
         return Response(
-            {"detail": "Sign-in failed. Use an active staff account."}, status=403
+            {"detail": "Sign-in failed. Use an active staff account."},
+            status=403
         )
+
     token = AccessToken.for_user(user)
     token.set_exp(lifetime=timedelta(hours=1))
+
     user.last_login = timezone.now()
     user.save(update_fields=["last_login"])
-    audit(user, user, CHANGE, "Signed in to the administration workspace")
+
+    audit(
+        user,
+        user,
+        CHANGE,
+        "Signed in to the administration workspace"
+    )
+
     return Response({"token": str(token)})
 
 
 def resource_for(key, user):
     if key not in resources:
         raise Http404
+
     resource = resources[key]
+
     if not permitted(user, resource):
         raise PermissionDenied()
+
     return resource
 
 
@@ -74,11 +88,17 @@ def resource_for(key, user):
 @permission_classes([IsActiveStaff])
 def workspace(request):
     user = request.user
+
     sections = [
-        {"key": key, "title": resource.title, "group": resource.group}
+        {
+            "key": key,
+            "title": resource.title,
+            "group": resource.group
+        }
         for key, resource in resources.items()
         if permitted(user, resource)
     ]
+
     return Response(
         {
             "email": user.email,
@@ -96,9 +116,12 @@ def workspace(request):
 @permission_classes([IsActiveStaff])
 def permission_catalog(request):
     resource_for("roles", request.user)
+
     grouped = defaultdict(list)
+
     for permission in assignable_permissions():
         content_type = permission.content_type
+
         resource_key = next(
             key
             for key, resource in resources.items()
@@ -106,8 +129,10 @@ def permission_catalog(request):
             and resource.model._meta.label_lower
             == f"{content_type.app_label}.{content_type.model}"
         )
+
         resource = resources[resource_key]
         action = permission.codename.split("_", 1)[0]
+
         grouped[resource.group].append(
             {
                 "id": permission.pk,
@@ -117,6 +142,7 @@ def permission_catalog(request):
                 "resource": resource_key,
             }
         )
+
     return Response(
         {
             "groups": [
@@ -133,28 +159,47 @@ def permission_catalog(request):
 
 def values(obj, fields):
     result = {"id": obj.pk}
+
     for name in fields.split():
         field = obj._meta.get_field(name)
         value = getattr(obj, name)
+
         if field.many_to_many:
-            value = ", ".join(str(item) for item in value.all())
+            value = ", ".join(
+                str(item) for item in value.all()
+            )
+
         elif isinstance(field, models.FileField):
             value = value.url if value else None
+
         elif field.is_relation and value is not None:
             value = str(value)
+
         result[name] = value
+
     return result
 
 
 def version(obj, resource):
-    raw = {field.attname: getattr(obj, field.attname) for field in obj._meta.fields}
+    raw = {
+        field.attname: getattr(obj, field.attname)
+        for field in obj._meta.fields
+    }
+
     for field in obj._meta.many_to_many:
         if field.name in resource.edit.split():
             raw[field.name] = list(
-                getattr(obj, field.name).order_by("pk").values_list("pk", flat=True)
+                getattr(obj, field.name)
+                .order_by("pk")
+                .values_list("pk", flat=True)
             )
+
     return hashlib.sha256(
-        json.dumps(raw, default=str, sort_keys=True).encode()
+        json.dumps(
+            raw,
+            default=str,
+            sort_keys=True
+        ).encode()
     ).hexdigest()
 
 
@@ -171,58 +216,108 @@ def audit(user, obj, flag, message):
 
 def filtered_records(request, key, resource):
     records = queryset(key)
-    term = request.query_params.get("q", "").strip()[:200]
+
+    term = request.query_params.get(
+        "q", ""
+    ).strip()[:200]
+
     if term:
         search = Q(pk__isnull=True)
+
         if term.isascii() and term.isdigit() and len(term) < 19:
             search = Q(pk=int(term))
+
         for name in resource.search.split():
             search |= Q(**{name + "__icontains": term})
+
         records = records.filter(search)
 
     filters = {}
+
     if key == "variants":
-        filters["inventory"] = [("low", "Low stock (1–5)"), ("out", "Out of stock")]
+        filters["inventory"] = [
+            ("low", "Low stock (1–5)"),
+            ("out", "Out of stock")
+        ]
+
         stock = request.query_params.get("inventory")
+
         if stock == "low":
             records = records.filter(stock__range=(1, 5))
+
         elif stock == "out":
             records = records.filter(stock=0)
+
     if key == "questions":
-        filters["unanswered"] = [("1", "Awaiting answer"), ("0", "Answered")]
+        filters["unanswered"] = [
+            ("1", "Awaiting answer"),
+            ("0", "Answered")
+        ]
+
         unanswered = Q(answer="") | Q(answer__isnull=True)
+
         if request.query_params.get("unanswered") == "1":
             records = records.filter(unanswered)
+
         elif request.query_params.get("unanswered") == "0":
             records = records.exclude(unanswered)
+
     if key == "team":
         filters["group"] = list(
-            Group.objects.order_by("name").values_list("pk", "name")
+            Group.objects.order_by("name")
+            .values_list("pk", "name")
         )
+
         selected_role = request.query_params.get("group")
-        if selected_role and selected_role.isascii() and selected_role.isdigit():
-            records = records.filter(groups__pk=selected_role)
+
+        if (
+            selected_role
+            and selected_role.isascii()
+            and selected_role.isdigit()
+        ):
+            records = records.filter(
+                groups__pk=selected_role
+            )
+
     sortable = []
+
     for name in resource.columns.split():
         field = resource.model._meta.get_field(name)
+
         if not field.many_to_many:
             sortable.append(name)
+
         if field.choices:
             filters[name] = list(field.choices)
+
         elif isinstance(field, models.BooleanField):
             filters[name] = (
                 [("1", "Active"), ("0", "Suspended")]
                 if key == "team" and name == "is_active"
                 else [("1", "Yes"), ("0", "No")]
             )
-        choices = {str(value) for value, _label in filters.get(name, [])}
+
+        choices = {
+            str(value)
+            for value, _label in filters.get(name, [])
+        }
+
         selected = request.query_params.get(name)
+
         if selected in choices:
-            records = records.filter(**{name: selected})
-    ordering = request.query_params.get("ordering", "-id")
+            records = records.filter(
+                **{name: selected}
+            )
+
+    ordering = request.query_params.get(
+        "ordering", "-id"
+    )
+
     if ordering.lstrip("-") not in sortable + ["id"]:
         ordering = "-id"
+
     records = records.order_by(ordering, "-pk")
+
     return records, filters, sortable, ordering
 
 
@@ -230,18 +325,41 @@ def filtered_records(request, key, resource):
 @permission_classes([IsActiveStaff])
 def listing(request, key):
     resource = resource_for(key, request.user)
-    records, filters, sortable, ordering = filtered_records(request, key, resource)
-    page_size = {"20": 20, "50": 50, "100": 100}.get(
-        request.query_params.get("page_size"), 20
+
+    records, filters, sortable, ordering = filtered_records(
+        request,
+        key,
+        resource
     )
-    page = Paginator(records, page_size).get_page(request.query_params.get("page"))
-    rows = [values(obj, resource.columns) for obj in page]
+
+    page_size = {
+        "20": 20,
+        "50": 50,
+        "100": 100
+    }.get(
+        request.query_params.get("page_size"),
+        20
+    )
+
+    page = Paginator(
+        records,
+        page_size
+    ).get_page(
+        request.query_params.get("page")
+    )
+
+    rows = [
+        values(obj, resource.columns)
+        for obj in page
+    ]
+
     if key == "roles":
         for obj, row in zip(page.object_list, rows):
             row.update(
                 member_count=obj.user_set.count(),
                 permission_count=obj.permissions.count(),
             )
+
     return Response(
         {
             "columns": resource.columns.split(),
@@ -254,65 +372,106 @@ def listing(request, key):
             "ordering": ordering,
             "sortable": sortable,
             "summary": collection_summary(key),
-            "create": resource.create and permitted(request.user, resource, "add"),
+            "create": resource.create and permitted(
+                request.user,
+                resource,
+                "add"
+            ),
         }
     )
 
 
 def deletion_plan(obj, user, key):
     plan = DeletionPlan(obj, user)
+
     if key == "roles" and obj.user_set.exists():
         plan.blockers.append(
-            "This role is assigned to accounts. Reassign those accounts before deleting it."
+            "This role is assigned to accounts. "
+            "Reassign those accounts before deleting it."
         )
+
     return plan
 
 
 def record_details(obj, resource, key, user, write, remove):
     fields = " ".join(
         dict.fromkeys(
-            (resource.columns + " " + resource.extra + " " + resource.edit).split()
+            (
+                resource.columns
+                + " "
+                + resource.extra
+                + " "
+                + resource.edit
+            ).split()
         )
     )
+
     detail = values(obj, fields) if obj else {}
+
     item_fields = {
         "orders": "product_name sku ram storage color_name quantity unit_price line_total",
         "carts": "variant quantity",
         "wishlists": "variant",
         "builds": "component_type variant quantity",
     }
+
     items = []
+
     if obj and key in item_fields:
         items = [
-            values(item, item_fields[key]) for item in obj.items.select_related().all()
+            values(item, item_fields[key])
+            for item in obj.items.select_related().all()
         ]
+
     response = {
         "data": detail,
         "version": version(obj, resource) if obj else "",
         "items": items,
         "delete": remove,
-        "deletion": deletion_plan(obj, user, key).summary() if remove else None,
-        "form": form_for(resource, instance=obj).as_div() if write else "",
+        "deletion": (
+            deletion_plan(obj, user, key).summary()
+            if remove else None
+        ),
+        "form": (
+            form_for(resource, instance=obj).as_div()
+            if write else ""
+        ),
         "actions": (
-            actions(key, obj) if obj and permitted(user, resource, "change") else []
+            actions(key, obj)
+            if obj and permitted(user, resource, "change")
+            else []
         ),
     }
+
     if obj and key == "team":
         response["access"] = {
-            "groups": list(obj.groups.order_by("name").values("id", "name")),
-            "direct_permissions": list(
-                obj.user_permissions.values_list("pk", flat=True)
+            "groups": list(
+                obj.groups.order_by("name")
+                .values("id", "name")
             ),
-            "effective_permissions": sorted(obj.get_all_permissions()),
+            "direct_permissions": list(
+                obj.user_permissions.values_list(
+                    "pk",
+                    flat=True
+                )
+            ),
+            "effective_permissions": sorted(
+                obj.get_all_permissions()
+            ),
             "last_login": obj.last_login,
             "date_joined": obj.date_joined,
         }
+
     if obj and key == "roles":
         response["members"] = list(
             obj.user_set.order_by("email").values(
-                "id", "email", "is_active", "is_staff"
+                "id",
+                "email",
+                "is_active",
+                "is_staff"
             )
         )
+
     return response
 
 
@@ -320,45 +479,96 @@ def record_details(obj, resource, key, user, write, remove):
 @permission_classes([IsActiveStaff])
 def record(request, key, pk=None):
     user = request.user
+
     resource = resource_for(key, user)
+
     write = bool(
-        permitted(user, resource, "change" if pk else "add")
+        permitted(
+            user,
+            resource,
+            "change" if pk else "add"
+        )
         and resource.edit
         and (pk or resource.create)
     )
-    remove = bool(pk and permitted(user, resource, "delete"))
+
+    remove = bool(
+        pk and permitted(user, resource, "delete")
+    )
+
     if not pk and not write:
         raise PermissionDenied()
+
     with transaction.atomic():
+
         obj = (
-            get_object_or_404(queryset(key).select_for_update(), pk=pk) if pk else None
+            get_object_or_404(
+                queryset(key).select_for_update(),
+                pk=pk
+            )
+            if pk else None
         )
+
         if request.method == "GET":
-            return Response(record_details(obj, resource, key, user, write, remove))
-        if not (remove if request.method == "DELETE" else write):
+            return Response(
+                record_details(
+                    obj,
+                    resource,
+                    key,
+                    user,
+                    write,
+                    remove
+                )
+            )
+
+        if not (
+            remove if request.method == "DELETE"
+            else write
+        ):
             raise PermissionDenied()
-        if pk and version(obj, resource) != request.headers.get("X-Record-Version"):
+
+        if pk and version(obj, resource) != request.headers.get(
+            "X-Record-Version"
+        ):
             return Response(
                 {
                     "detail": "This record changed. Close and reopen it to see the latest values."
                 },
                 status=409,
             )
+
         if request.method == "DELETE":
             plan = deletion_plan(obj, user, key)
+
             if plan.blockers:
-                return Response({"detail": ". ".join(plan.blockers)}, status=409)
-            if plan.token != request.headers.get("X-Deletion-Token"):
+                return Response(
+                    {
+                        "detail": ". ".join(plan.blockers)
+                    },
+                    status=409
+                )
+
+            if plan.token != request.headers.get(
+                "X-Deletion-Token"
+            ):
                 return Response(
                     {
                         "detail": "Related records changed. Reopen the record to review the deletion."
                     },
                     status=409,
                 )
+
             try:
                 with transaction.atomic():
-                    audit(user, obj, DELETION, "Removed in TechZone console")
+                    audit(
+                        user,
+                        obj,
+                        DELETION,
+                        "Removed in TechZone console"
+                    )
+
                     plan.collector.delete()
+
             except IntegrityError:
                 return Response(
                     {
@@ -366,21 +576,35 @@ def record(request, key, pk=None):
                     },
                     status=409,
                 )
+
             return Response(status=204)
-        form = form_for(resource, instance=obj, data=request.data, files=request.FILES)
+
+        form = form_for(
+            resource,
+            instance=obj,
+            data=request.data,
+            files=request.FILES
+        )
+
         if not form.is_valid():
             return Response(form.errors, status=400)
+
         try:
             with transaction.atomic():
                 saved = form.save()
+
                 audit(
                     user,
                     saved,
                     CHANGE if pk else ADDITION,
                     "Updated " + ", ".join(form.changed_data),
                 )
+
         except IntegrityError:
-            raise ValidationError("This change conflicts with another record.")
+            raise ValidationError(
+                "This change conflicts with another record."
+            )
+
         return Response({"id": saved.pk})
 
 
@@ -388,83 +612,258 @@ def record(request, key, pk=None):
 @permission_classes([IsActiveStaff])
 def operation(request, key, pk):
     resource = resource_for(key, request.user)
-    if not permitted(request.user, resource, "change"):
+
+    if not permitted(
+        request.user,
+        resource,
+        "change"
+    ):
         raise PermissionDenied()
+
     with transaction.atomic():
-        obj = get_object_or_404(queryset(key).select_for_update(), pk=pk)
+
+        obj = get_object_or_404(
+            queryset(key).select_for_update(),
+            pk=pk
+        )
+
         stamp = request.headers.get("X-Record-Version")
-        if (stamp or key == "team") and stamp != version(obj, resource):
+
+        if (
+            stamp or key == "team"
+        ) and stamp != version(obj, resource):
+
             return Response(
                 {
                     "detail": "This record changed. Reopen it before applying this action."
                 },
                 status=409,
             )
+
         action = request.data.get("action")
+
         if action not in actions(key, obj):
-            raise ValidationError("This action is unavailable for the current status.")
-        note = str(request.data.get("note", "")).strip()[:2000]
+            raise ValidationError(
+                "This action is unavailable for the current status."
+            )
+
+        note = str(
+            request.data.get("note", "")
+        ).strip()[:2000]
+
         if key in {"team", "orders"}:
-            execute_action(key, obj, action, request.user, note)
+            execute_action(
+                key,
+                obj,
+                action,
+                request.user,
+                note
+            )
+
             return Response({"ok": True})
-    # Gateway services manage their own short transactions. Do not hold a
-    # database lock open while they contact the external payment provider.
-    execute_action(key, obj, action, request.user, note)
+
+    # Gateway services manage their own short transactions.
+    # Do not hold a database lock during external requests.
+
+    execute_action(
+        key,
+        obj,
+        action,
+        request.user,
+        note
+    )
+
     return Response({"ok": True})
 
 
 def execute_action(key, obj, action, user, note):
     try:
-        execute(key, obj, action, user, note)
+        execute(
+            key,
+            obj,
+            action,
+            user,
+            note
+        )
+
     except (DjangoError, GatewayError) as exc:
         raise ValidationError(
-            " ".join(exc.messages) if isinstance(exc, DjangoError) else str(exc)
+            " ".join(exc.messages)
+            if isinstance(exc, DjangoError)
+            else str(exc)
         )
-    audit(user, obj, CHANGE, action.replace("_", " ").capitalize())
 
+    audit(
+        user,
+        obj,
+        CHANGE,
+        action.replace("_", " ").capitalize()
+    )
+
+
+# =========================================================
+# DASHBOARD DATE RANGE
+# =========================================================
+
+def get_overview_date_range(request):
+
+    today = timezone.localdate()
+
+    start_date = request.query_params.get("start_date")
+    end_date = request.query_params.get("end_date")
+
+    # Custom date range
+    if start_date is not None or end_date is not None:
+
+        if not start_date or not end_date:
+            raise ValidationError({
+                "detail": "Select both start date and end date."
+            })
+
+        try:
+            start = date.fromisoformat(start_date)
+            end = date.fromisoformat(end_date)
+
+            if (
+                start.isoformat() != start_date
+                or end.isoformat() != end_date
+            ):
+                raise ValueError()
+
+        except (ValueError, TypeError):
+            raise ValidationError({
+                "detail": "Invalid date. Use YYYY-MM-DD format."
+            })
+
+        if start > end:
+            raise ValidationError({
+                "detail": "Start date cannot be after end date."
+            })
+
+        if end > today:
+            raise ValidationError({
+                "detail": "End date cannot be in the future."
+            })
+
+        days = (end - start).days + 1
+
+        if days > 366:
+            raise ValidationError({
+                "detail": "Date range cannot exceed 366 days."
+            })
+
+        return start, end, days
+
+    # Preset date ranges
+    days = {
+        "1": 1,
+        "7": 7,
+        "30": 30,
+        "90": 90,
+    }.get(
+        request.query_params.get("days"),
+        30
+    )
+
+    end = today
+    start = end - timedelta(days=days - 1)
+
+    return start, end, days
+
+
+# =========================================================
+# DASHBOARD OVERVIEW
+# =========================================================
 
 @api_view(["GET"])
 @permission_classes([IsActiveStaff])
 def overview(request):
+
     resource_for("orders", request.user)
-    days = {"7": 7, "30": 30, "90": 90}.get(request.query_params.get("days"), 30)
-    today = timezone.localdate()
-    start = today - timedelta(days=days - 1)
-    orders = Order.objects.filter(created_at__date__range=(start, today))
-    paid = orders.filter(payment_status="paid").exclude(status="cancelled")
+
+    start, end, days = get_overview_date_range(request)
+
+    orders = Order.objects.filter(
+        created_at__date__range=(start, end)
+    )
+
+    paid = orders.filter(
+        payment_status="paid"
+    ).exclude(
+        status="cancelled"
+    )
+
     daily = {
         row["day"]: row["total"]
-        for row in paid.annotate(day=TruncDate("created_at"))
+
+        for row in paid.annotate(
+            day=TruncDate("created_at")
+        )
         .values("day")
-        .annotate(total=Sum("total_amount"))
+        .annotate(
+            total=Sum("total_amount")
+        )
     }
-    total = sum(daily.values(), Decimal(0))
+
+    total = sum(
+        daily.values(),
+        Decimal(0)
+    )
+
     count = paid.count()
-    states = dict(orders.values_list("status").annotate(n=Count("pk")).order_by())
+
+    states = dict(
+        orders.values_list("status")
+        .annotate(n=Count("pk"))
+        .order_by()
+    )
+
     sellers = (
         OrderItem.objects.filter(order__in=paid)
         .values("product_name")
         .annotate(units=Sum("quantity"))
         .order_by("-units", "product_name")[:5]
     )
+
     return Response(
         {
+            "start_date": start.isoformat(),
+
+            "end_date": end.isoformat(),
+
+            "days": days,
+
             "sellers": list(sellers),
+
             "revenue": total,
+
             "orders": orders.count(),
+
             "average": total / count if count else 0,
+
             "pending": states.get("pending", 0),
+
             "states": states,
+
             "series": [
-                {"date": day.isoformat(), "value": daily.get(day, 0)}
-                for day in (start + timedelta(days=index) for index in range(days))
+                {
+                    "date": day.isoformat(),
+                    "value": daily.get(day, 0)
+                }
+                for day in (
+                    start + timedelta(days=index)
+                    for index in range(days)
+                )
             ],
+
             "recent": [
                 values(
-                    order, "shipping_name status payment_status total_amount created_at"
+                    order,
+                    "shipping_name status payment_status total_amount created_at"
                 )
                 for order in orders.order_by("-pk")[:6]
             ],
+
             **workspace_insights(request.user),
         }
     )

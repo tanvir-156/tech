@@ -53,7 +53,7 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout title="Welcome back" subtitle="Sign in to continue shopping with TechNest.">
+    <AuthLayout title="Welcome Back" subtitle="Sign in to continue shopping with TechNest.">
       <Input label="Email" icon="mail-outline" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoCorrect={false} placeholder="you@example.com" />
       <Input label="Password" icon="lock-closed-outline" value={password} onChangeText={setPassword} secure placeholder="Your password" onSubmitEditing={submit} returnKeyType="go" />
       <Pressable onPress={() => nav.navigate('ForgotPassword')} style={{ alignSelf: 'flex-end', marginTop: -4, marginBottom: 12 }}>
@@ -78,7 +78,9 @@ export default function Login() {
         </Pressable>
       </View>
       <View style={{ height: 1, backgroundColor: colors.border, marginVertical: 22 }} />
+      
       <Button title="Staff & admin sign in" variant="ghost" icon="shield-checkmark-outline" onPress={() => nav.navigate('StaffLogin')} small />
+     
       <Pressable onPress={() => nav.navigate('ServerSettings')} style={{ alignSelf: 'center', marginTop: 16 }}>
         <T size={12} color={colors.muted}>
           Server settings

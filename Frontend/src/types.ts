@@ -1,10 +1,18 @@
 export type AnyRecord = Record<string, unknown>;
 
+// =========================================================
+// COLOR
+// =========================================================
+
 export interface Color {
   id: number;
   name: string;
   hex_code: string;
 }
+
+// =========================================================
+// PRODUCT VARIANT
+// =========================================================
 
 export interface Variant {
   id: number;
@@ -21,6 +29,10 @@ export interface Variant {
   is_default?: boolean;
   is_active?: boolean;
 }
+
+// =========================================================
+// PRODUCT
+// =========================================================
 
 export interface Product {
   id: number;
@@ -39,6 +51,10 @@ export interface Product {
   created_at?: string;
 }
 
+// =========================================================
+// PRODUCT IMAGE
+// =========================================================
+
 export interface ProductImage {
   id: number;
   product: number;
@@ -48,6 +64,10 @@ export interface ProductImage {
   display_order?: number;
 }
 
+// =========================================================
+// BRAND
+// =========================================================
+
 export interface Brand {
   id: number;
   name: string;
@@ -55,6 +75,10 @@ export interface Brand {
   description?: string;
   is_active?: boolean;
 }
+
+// =========================================================
+// CATEGORY
+// =========================================================
 
 export interface Category {
   id: number;
@@ -69,12 +93,20 @@ export interface Category {
   is_active?: boolean;
 }
 
+// =========================================================
+// PAGINATION
+// =========================================================
+
 export interface Page<T> {
   count: number;
   next: string | null;
   previous: string | null;
   results: T[];
 }
+
+// =========================================================
+// USER
+// =========================================================
 
 export interface User {
   id: number;
@@ -85,6 +117,10 @@ export interface User {
   date_joined?: string;
 }
 
+// =========================================================
+// ADDRESS
+// =========================================================
+
 export interface Address {
   id?: number;
   first_name: string;
@@ -93,15 +129,21 @@ export interface Address {
   address1: string;
   address2?: string;
   city: string;
+  upazila?: string;
   postal_code: string;
   country: string;
   region: string;
 }
 
+// =========================================================
+// CART ITEM
+// =========================================================
+
 export interface CartItem {
   id: number;
   variant: number;
   product_id?: number;
+  product_slug?: string;
   product_name: string;
   product_image?: string | null;
   sku?: string;
@@ -116,10 +158,18 @@ export interface CartItem {
   subtotal?: string;
 }
 
+// =========================================================
+// CART
+// =========================================================
+
 export interface Cart {
   id: number;
   items: CartItem[];
 }
+
+// =========================================================
+// ORDER ITEM
+// =========================================================
 
 export interface OrderItem {
   id: number;
@@ -134,6 +184,10 @@ export interface OrderItem {
   quantity: number;
   line_total: string;
 }
+
+// =========================================================
+// ORDER
+// =========================================================
 
 export interface Order {
   id: number;
@@ -153,6 +207,10 @@ export interface Order {
   created_at: string;
 }
 
+// =========================================================
+// WISHLIST ITEM
+// =========================================================
+
 export interface WishlistItem {
   id: number;
   variant_id: number;
@@ -167,11 +225,19 @@ export interface WishlistItem {
   is_available: boolean;
 }
 
+// =========================================================
+// WISHLIST
+// =========================================================
+
 export interface Wishlist {
   count?: number;
   is_public?: boolean;
   items: WishlistItem[];
 }
+
+// =========================================================
+// PC VARIANT
+// =========================================================
 
 export interface PcVariant {
   id: number;
@@ -188,6 +254,10 @@ export interface PcVariant {
   image?: string | null;
 }
 
+// =========================================================
+// PC BUILD ITEM
+// =========================================================
+
 export interface PcBuildItem {
   id: number;
   component_type: string;
@@ -196,12 +266,20 @@ export interface PcBuildItem {
   subtotal: string;
 }
 
+// =========================================================
+// PC BUILD
+// =========================================================
+
 export interface PcBuild {
   id: number;
   name: string;
   items: PcBuildItem[];
   total_price: string;
 }
+
+// =========================================================
+// PC COMPATIBILITY
+// =========================================================
 
 export interface Compatibility {
   status: string;
@@ -211,14 +289,35 @@ export interface Compatibility {
   note?: string;
 }
 
+// =========================================================
+// PRODUCT COMPARISON
+// =========================================================
+
 export interface CompareResult {
   count: number;
-  products: (Product & { image?: string; variant?: Variant; rating?: number; review_count?: number })[];
+
+  products: (
+    Product & {
+      image?: string;
+      variant?: Variant;
+      rating?: number;
+      review_count?: number;
+    }
+  )[];
+
   specification_sections: {
     name: string;
-    rows: { label: string; values: unknown[]; different: boolean }[];
+    rows: {
+      label: string;
+      values: unknown[];
+      different: boolean;
+    }[];
   }[];
 }
+
+// =========================================================
+// PRODUCT QUESTION
+// =========================================================
 
 export interface ProductQuestion {
   id: number;
@@ -230,6 +329,10 @@ export interface ProductQuestion {
   user_name?: string;
 }
 
+// =========================================================
+// PRODUCT REVIEW
+// =========================================================
+
 export interface ProductReview {
   id: number;
   product: number;
@@ -237,8 +340,12 @@ export interface ProductReview {
   review: string;
   created_at: string;
   user_name?: string;
-  is_approved: boolean;
+  is_approved?: boolean;
 }
+
+// =========================================================
+// NOTICE
+// =========================================================
 
 export interface Notice {
   id: number;

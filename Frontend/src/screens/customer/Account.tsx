@@ -92,8 +92,10 @@ export default function Account() {
           <MenuRow icon="notifications-outline" title="Notifications" onPress={() => nav.navigate('Notifications')} />
           <MenuRow icon="help-circle-outline" title="Help & Support" onPress={() => nav.navigate('Help')} />
           <MenuRow icon="information-circle-outline" title="About TechNest" onPress={() => nav.navigate('About')} />
-          <MenuRow icon="server-outline" title="Server settings" onPress={() => nav.navigate('ServerSettings')} />
+          <MenuRow icon="server-outline" title="Server settings" onPress={() => nav.navigate('ServerSettings')} last />
+          
           <MenuRow icon="shield-checkmark-outline" title="Staff & admin panel" subtitle="For TechNest team members" onPress={() => nav.navigate('StaffLogin')} last />
+          
         </Card>
 
         {user && (

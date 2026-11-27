@@ -45,9 +45,9 @@ class User(AbstractUser):
     # Password reset OTP
 
     password_reset_otp = models.CharField(
-    max_length=6,
-    blank=True,
-    null=True
+        max_length=6,
+        blank=True,
+        null=True
     )
 
     password_reset_otp_created_at = models.DateTimeField(
@@ -78,7 +78,6 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
-
 
 
 class Address(models.Model):
@@ -113,6 +112,12 @@ class Address(models.Model):
 
     city = models.CharField(
         max_length=100
+    )
+
+    upazila = models.CharField(
+        max_length=100,
+        blank=True,
+        default=''
     )
 
     postal_code = models.CharField(

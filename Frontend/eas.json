@@ -1,0 +1,32 @@
+{
+  "cli": {
+    "version": ">= 27.11.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://done-shower-jonathan-farm.trycloudflare.com",
+        "EXPO_PUBLIC_WEB_BASE_URL": "http://10.131.140.242:3000"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://done-shower-jonathan-farm.trycloudflare.com",
+        "EXPO_PUBLIC_WEB_BASE_URL": "http://10.131.140.242:3000"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

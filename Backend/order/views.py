@@ -28,6 +28,9 @@ from .serializers import (
 
 from .services import cancel_order
 
+# New delivery charge calculation
+from .delivery import calculate_delivery_charge
+
 
 # =========================================================
 # CHECKOUT
@@ -201,14 +204,46 @@ class CheckoutView(generics.GenericAPIView):
                 subtotal
             )
 
-            total_amount = (
+            # =================================================
+            # CALCULATE PURCHASE AMOUNT AFTER DISCOUNT
+            # =================================================
+
+            purchase_amount = (
                 subtotal - discount_amount
             )
 
-            if total_amount < 0:
+            if purchase_amount < Decimal('0.00'):
                 raise ValidationError({
                     'discount': 'Invalid discount amount.'
                 })
+
+            # =================================================
+            # CALCULATE DELIVERY CHARGE
+            # =================================================
+
+            # Sylhet Division:
+            # Below 5000 BDT = 80 BDT
+            # 5000 BDT or more = Free delivery
+            #
+            # Other Divisions:
+            # Below 10000 BDT = 130 BDT
+            # 10000 BDT or more = Free delivery
+            #
+            # The purchase amount is calculated after
+            # product and coupon discounts.
+
+            delivery_charge = calculate_delivery_charge(
+                division=data['shipping_division'],
+                purchase_amount=purchase_amount,
+            )
+
+            # =================================================
+            # CALCULATE FINAL ORDER TOTAL
+            # =================================================
+
+            total_amount = (
+                purchase_amount + delivery_charge
+            )
 
             # =================================================
             # REDUCE PRODUCT STOCK
@@ -340,6 +375,10 @@ class CheckoutView(generics.GenericAPIView):
 
                 discount_amount=discount_amount,
 
+                # Dynamic delivery charge
+                delivery_charge=delivery_charge,
+
+                # Final amount including delivery
                 total_amount=total_amount,
 
                 # Payment

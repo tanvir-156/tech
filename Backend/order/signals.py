@@ -110,12 +110,12 @@ def order_email_notification(
                 )
 
             subject = (
-                f"TechZone - Order #{order_id} Received"
+                f"TechNest - Order #{order_id} Received"
             )
 
             message = (
                 f"Hello {order.shipping_name},\n\n"
-                f"Thank you for shopping with TechZone!\n\n"
+                f"Thank you for shopping with TechNest!\n\n"
                 f"We have received your order.\n\n"
                 f"Order ID: #{order_id}\n"
                 f"Order Status: "
@@ -130,7 +130,7 @@ def order_email_notification(
                 f"Shipping Address:\n"
                 f"{order.shipping_address}\n\n"
                 f"Thank you,\n"
-                f"TechZone Team"
+                f"TechNest Team"
             )
 
             send_order_email(
@@ -166,19 +166,19 @@ def order_email_notification(
 
     def send_status_update():
         subject = (
-            f"TechZone - Order #{order_id} "
+            f"TechNest - Order #{order_id} "
             f"Status Updated"
         )
 
         message = (
             f"Hello {instance.shipping_name},\n\n"
-            f"Your TechZone order #{order_id} "
+            f"Your TechNest order #{order_id} "
             f"status has been updated.\n\n"
             f"New Status: {new_status}\n\n"
-            f"Please log in to your TechZone account "
+            f"Please log in to your TechNest account "
             f"to view your order details.\n\n"
             f"Thank you,\n"
-            f"TechZone Team"
+            f"TechNest Team"
         )
 
         send_order_email(

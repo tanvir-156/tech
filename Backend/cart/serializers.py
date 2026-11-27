@@ -1,4 +1,3 @@
-
 from rest_framework import serializers
 
 from .models import Cart, CartItem
@@ -19,6 +18,11 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     product_id = serializers.IntegerField(
         source='variant.product.id',
+        read_only=True
+    )
+
+    product_slug = serializers.CharField(
+        source='variant.product.slug',
         read_only=True
     )
 
@@ -97,6 +101,7 @@ class CartItemSerializer(serializers.ModelSerializer):
             'id',
             'variant',
             'product_id',
+            'product_slug',
             'product_name',
             'product_image',
             'sku',
@@ -114,6 +119,7 @@ class CartItemSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'id',
             'product_id',
+            'product_slug',
             'product_name',
             'product_image',
             'sku',

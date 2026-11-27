@@ -100,6 +100,7 @@ def create_gateway_session(payment):
         and backend_url.startswith((
             'http://localhost:',
             'http://127.0.0.1:',
+            'http://192.168.0.196:8000',
         ))
     )
 
@@ -1036,6 +1037,17 @@ def check_gateway_refund(refund):
 # FRONTEND RESULT URL
 # =========================================================
 
+# def frontend_result_url(transaction_id, result):
+#     query = urlencode({
+#         'transaction_id': transaction_id,
+#         'result': result,
+#     })
+
+#     return (
+#         f'{settings.SSLCOMMERZ_FRONTEND_URL.rstrip("/")}'
+#         f'/payment-result/?{query}'
+#     )
+
 def frontend_result_url(transaction_id, result):
     query = urlencode({
         'transaction_id': transaction_id,
@@ -1043,6 +1055,6 @@ def frontend_result_url(transaction_id, result):
     })
 
     return (
-        f'{settings.SSLCOMMERZ_FRONTEND_URL.rstrip("/")}'
-        f'/payment-result/?{query}'
+        'exp://192.168.0.196:8081/--/payment-result'
+        f'?{query}'
     )

@@ -151,6 +151,13 @@ class Order(models.Model):
         default=0
     )
 
+    # Fixed delivery charge (BDT)
+    delivery_charge = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=80
+    )
+
     total_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2

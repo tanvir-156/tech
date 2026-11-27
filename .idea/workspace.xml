@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="NONE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="5a645ebc-8e81-4fe1-9811-2d6fb6c5ec14" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Frontend/eas.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/.env" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/accounts/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/accounts/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/accounts/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/accounts/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/accounts/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/accounts/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/admin_panel/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/admin_panel/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/cart/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/cart/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/config/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/config/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/config/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/config/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/db.sqlite3" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/order/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/order/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/order/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/order/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/order/signals.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/order/signals.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/order/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/order/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/payments/services.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/payments/services.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/payments/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/payments/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/.env.example" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/components/ProductCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/components/ProductCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/components/ui.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/components/ui.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/navigation/Customer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/navigation/Customer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/admin/Dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/admin/Dashboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/auth/ForgotPassword.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/auth/ForgotPassword.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/auth/Login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/auth/Login.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/auth/Register.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/auth/Register.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/Account.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/Account.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/AccountInfo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/AccountInfo.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/Address.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/Address.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/Cart.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/Cart.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/Categories.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/Categories.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/ChangePassword.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/ChangePassword.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/Checkout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/Checkout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/Compare.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/Compare.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/Home.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/Home.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/OrderDetail.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/OrderDetail.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/PCBuilder.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/PCBuilder.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/ProductDetail.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/ProductDetail.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/ProductList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/ProductList.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/Search.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/Search.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/screens/customer/Wishlist.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/screens/customer/Wishlist.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/theme/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/theme/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/types.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="3Mdi0U6L2FghNCHnj85C39cEDIc" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "new__version",
+    "last_opened_file_path": "D:/Software Engineering Lab/tech",
+    "settings.editor.selected.configurable": "AndroidSdkUpdater"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5a645ebc-8e81-4fe1-9811-2d6fb6c5ec14" name="Changes" comment="" />
+      <created>1795686623650</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1795686623650</updated>
+    </task>
+    <servers />
+  </component>
+</project>
